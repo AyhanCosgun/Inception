@@ -1,0 +1,82 @@
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  credentials:
+    file: ../secrets/credentials.txt
+
+volumes:
+  mariadb_volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/ayhan/data/mariadb
+
+  wordpress_volume:
+    driver : local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/ayhan/data/wordpress
+
+networks:
+  net:
+    name: net
+    driver: bridge
+
+services:
+
+  mariadb:
+    container_name: mariadb
+    build: ./requirements/mariadb
+    env_file:
+      - .env
+    expose:
+      - 3306
+    networks:
+      - net
+    volumes:
+      - mariadb_volume:/var/lib/mysql
+    secrets:
+      - db_password
+      - db_root_password
+      - credentials
+    restart: always
+
+  wordpress:
+    container_name: wordpress
+    build: ./requirements/wordpress
+    env_file:
+      - .env
+    expose:
+      - 9000
+    networks:
+      - net
+    volumes:
+      - wordpress_volume:/var/www/html
+    depends_on:
+      - mariadb
+    secrets:
+      - credentials
+      - db_password
+    restart: always
+
+  nginx:
+    container_name: nginx
+    build: ./requirements/nginx
+    expose:
+      - 443
+    networks:
+      - net
+    ports:
+      - "443:443"
+    volumes:
+      - wordpress_volume:/var/www/html
+    depends_on:
+      - mariadb
+      - wordpress
+    secrets:
+      - credentials
+    restart: always
