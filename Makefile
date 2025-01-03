@@ -2,11 +2,14 @@ COMPOSE_DIR := ./srcs
 
 all: up
 
-up:
+up:check_credentials
 	mkdir -p ${HOME}/data/wordpress
 	mkdir -p ${HOME}/data/mariadb
 	sudo mount --make-shared /
 	docker compose -f $(COMPOSE_DIR)/docker-compose.yml up --build
+
+check_credentials:
+	@$(COMPOSE_DIR)/requirements/tools/check-credentials.sh
 
 down:
 	docker compose -f $(COMPOSE_DIR)/docker-compose.yml down
@@ -65,4 +68,4 @@ host:
 	    exit 1; \
 	fi
 
-.PHONY: all up down restart build clean fclean re host
+.PHONY: all up down restart build clean fclean re host check_credentials

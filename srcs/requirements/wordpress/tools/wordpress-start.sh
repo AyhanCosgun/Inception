@@ -19,29 +19,21 @@ mkdir -p /run/php/
 touch /run/php/php7.4-fpm.pid
 chown -R www-data:www-data /var/www/html/
 
-if [ -f /run/secrets/credentials ]; then
-	export MYSQL_DATABASE=$(grep MYSQL_DATABASE /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-	export MYSQL_USER=$(grep MYSQL_USER /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-	export WP_ADMIN_LOGIN=$(grep WP_ADMIN_LOGIN /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-	export WP_ADMIN_EMAIL=$(grep WP_ADMIN_EMAIL /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-	export WP_USER_EMAIL=$(grep WP_USER_EMAIL /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-	export MAIL_EXTENTION=$(grep MAIL_EXTENTION /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-fi
 
-if [ -f /run/secrets/db_password ]; then
-	export MYSQL_PASSWORD=$(cat /run/secrets/db_password)
-fi
-
-if [ -z "$MYSQL_DATABASE" ] || [ -z "$MYSQL_USER" ] || [ -z "$MYSQL_PASSWORD" ] || \
-	 [ -z "$WP_ADMIN_LOGIN" ] || [ -z "$WP_ADMIN_EMAIL" ] || [ -z "$WP_USER_EMAIL" ] || [ -z "$MAIL_EXTENTION" ]; then
-	echo -e "${RED}Error: Some critical environment variables are not set.${RESET}"
-	exit 1
-fi
+export MYSQL_DATABASE=$(grep MYSQL_DATABASE /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+export MYSQL_USER=$(grep MYSQL_USER /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+export WP_ADMIN_LOGIN=$(grep WP_ADMIN_LOGIN /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+export WP_ADMIN_PASSWORD=$(grep WP_ADMIN_PASSWORD /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+export WP_ADMIN_EMAIL=$(grep WP_ADMIN_EMAIL /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+export WP_USER_EMAIL=$(grep WP_USER_EMAIL /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+export MAIL_EXTENTION=$(grep MAIL_EXTENTION /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+export MYSQL_PASSWORD=$(cat /run/secrets/db_password)
 
 echo -e "MYSQL_USER: ${BLUE}[$MYSQL_USER]${RESET}"
 echo -e "MYSQL_DATABASE: ${BLUE}[$MYSQL_DATABASE]${RESET}"
 echo -e "MYSQL_PASSWORD: ${BLUE}[$MYSQL_PASSWORD]${RESET}"
 echo -e "WP_ADMIN_LOGIN: ${BLUE}[$WP_ADMIN_LOGIN]${RESET}"
+echo -e "WP_ADMIN_PASSWORD: ${BLUE}[$WP_ADMIN_PASSWORD]${RESET}"
 echo -e "WP_ADMIN_EMAIL: ${BLUE}[$WP_ADMIN_EMAIL]${RESET}"
 echo -e "WP_USER_EMAIL: ${BLUE}[$WP_USER_EMAIL]${RESET}"
 echo -e "MAIL_EXTENTION: ${BLUE}[$MAIL_EXTENTION]${RESET}"
