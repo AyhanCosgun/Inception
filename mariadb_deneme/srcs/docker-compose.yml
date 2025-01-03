@@ -1,5 +1,13 @@
 version: '3.9'
 
+volumes:
+  db:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/acosgun/datam/mariadb
+
 secrets:
   db_password:
     file: ../secrets/db_password.txt
@@ -13,12 +21,14 @@ services:
     build: ./requirements/mariadb
     container_name: mariadb
     volumes:
-      - /home/acosgun/data/mariadb:/var/lib/mysql
+      - db:/var/lib/mysql
     secrets:
       - db_password
       - db_root_password
       - credentials
     restart: always
+    expose:
+      - 3306
     networks:
       - inception_net
     env_file:
