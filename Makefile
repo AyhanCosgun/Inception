@@ -24,7 +24,7 @@ clean:
 
 fclean: clean
 	@sudo rm -rf ${HOME}/data
-	docker compose -f $(COMPOSE_DIR)/docker-compose.yml down --rmi all --volumes --remove-orphans
+	docker compose -f $(COMPOSE_DIR)/docker-compose.ymonf/50-server.cnf /etc/mysql/mariadb.conf.l down --rmi all --volumes --remove-orphans
 
 re: fclean all
 

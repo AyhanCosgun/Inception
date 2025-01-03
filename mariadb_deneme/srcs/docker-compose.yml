@@ -1,0 +1,29 @@
+version: '3.9'
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  credentials:
+    file: ../secrets/credentials.txt
+
+services:  
+  mariadb:
+    build: ./requirements/mariadb
+    container_name: mariadb
+    volumes:
+      - /home/acosgun/data/mariadb:/var/lib/mysql
+    secrets:
+      - db_password
+      - db_root_password
+      - credentials
+    restart: always
+    networks:
+      - inception_net
+    env_file:
+      - .env
+
+networks:
+  inception_net:
+    driver: bridge
