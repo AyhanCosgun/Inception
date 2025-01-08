@@ -7,9 +7,6 @@ BLUE='\033[34m'
 YELLOW='\033[33m'
 RESET='\033[0m'
 
-##############################################
-# sleep 10 is for waiting the database to be ready
-##############################################
 
 sleep 10
 
@@ -19,30 +16,33 @@ mkdir -p /run/php/
 touch /run/php/php7.4-fpm.pid
 chown -R www-data:www-data /var/www/html/
 
+if [ -f /run/secrets/credentials ]; then
+	export MYSQL_DATABASE=$(grep MYSQL_DATABASE /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+	export MYSQL_USER=$(grep MYSQL_USER /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+	export WP_ADMIN_LOGIN=$(grep WP_ADMIN_LOGIN /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+	export WP_ADMIN_PASSWORD=$(grep WP_ADMIN_PASSWORD /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+	export WP_ADMIN_EMAIL=$(grep WP_ADMIN_EMAIL /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+	export WP_USER_EMAIL=$(grep WP_USER_EMAIL /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+	export MAIL_EXTENTION=$(grep MAIL_EXTENTION /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
+fi
 
-export MYSQL_DATABASE=$(grep MYSQL_DATABASE /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-export MYSQL_USER=$(grep MYSQL_USER /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-export WP_ADMIN_LOGIN=$(grep WP_ADMIN_LOGIN /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-export WP_ADMIN_PASSWORD=$(grep WP_ADMIN_PASSWORD /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-export WP_ADMIN_EMAIL=$(grep WP_ADMIN_EMAIL /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-export WP_USER_EMAIL=$(grep WP_USER_EMAIL /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-export MAIL_EXTENTION=$(grep MAIL_EXTENTION /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-export MYSQL_PASSWORD=$(cat /run/secrets/db_password)
+if [ -f /run/secrets/db_password ]; then
+	export MYSQL_PASSWORD=$(cat /run/secrets/db_password)
+fi
 
-echo -e "MYSQL_USER: ${BLUE}[$MYSQL_USER]${RESET}"
-echo -e "MYSQL_DATABASE: ${BLUE}[$MYSQL_DATABASE]${RESET}"
-echo -e "MYSQL_PASSWORD: ${BLUE}[$MYSQL_PASSWORD]${RESET}"
-echo -e "WP_ADMIN_LOGIN: ${BLUE}[$WP_ADMIN_LOGIN]${RESET}"
-echo -e "WP_ADMIN_PASSWORD: ${BLUE}[$WP_ADMIN_PASSWORD]${RESET}"
-echo -e "WP_ADMIN_EMAIL: ${BLUE}[$WP_ADMIN_EMAIL]${RESET}"
-echo -e "WP_USER_EMAIL: ${BLUE}[$WP_USER_EMAIL]${RESET}"
-echo -e "MAIL_EXTENTION: ${BLUE}[$MAIL_EXTENTION]${RESET}"
+if [ -z "$MYSQL_DATABASE" ] || [ -z "$MYSQL_USER" ] || [ -z "$MYSQL_PASSWORD" ] || \
+	 [ -z "$WP_ADMIN_LOGIN" ] || [ -z "$WP_ADMIN_EMAIL" ] || [ -z "$WP_USER_EMAIL" ] || [ -z "$MAIL_EXTENTION" ]; then
+	echo -e "${RED}Error: Some critical environment variables are not set.${RESET}"
+	exit 1
+fi
 
 
 if [ ! -f /var/www/html/wp-config.php ]; then
 
 max_attempts=10
 attempt=1
+
+# Downloading Wordpress core
 	until wp-cli core download --allow-root; do
 	    if [ $attempt -ge $max_attempts ]; then
 	        echo -e "${RED}Core download failed, reached maximum attempts, max attempts: $max_attempts${RESET}"
@@ -53,6 +53,7 @@ attempt=1
 	    sleep 2
 	done
 
+# Database configuration
 attempt=1
 	until wp-cli config create --allow-root \
 	    --dbname=$MYSQL_DATABASE \
@@ -68,12 +69,13 @@ attempt=1
 	    sleep 2
 	done
 
+# Wordpress installation
 attempt=1
 	until wp-cli core install --allow-root \
 	    --url=$DOMAIN_NAME \
 	    --title="wordpress" \
 	    --admin_user=$WP_ADMIN_LOGIN \
-	    --admin_password=$MYSQL_PASSWORD \
+	    --admin_password=$WP_ADMIN_PASSWORD \
 	    --admin_email=$WP_ADMIN_EMAIL; do
 	    if [ $attempt -ge $max_attempts ]; then
 	        echo -e "${RED}Core installation failed, reached maximum attempts. Max attempts: $max_attempts${RESET}"
@@ -84,6 +86,7 @@ attempt=1
 	    sleep 2
 	done
 
+# Create user account
 attempt=1
 	until wp-cli user create --allow-root \
 	    $MYSQL_USER $MAIL_EXTENTION \
@@ -96,14 +99,15 @@ attempt=1
 	    attempt=$((attempt + 1))
 	    sleep 2
 	done
-	
+
+# List all users	
 	wp-cli user list --allow-root | while IFS= read -r line; do
 		echo -e "${BLUE}$line${RESET}"
 	done
 
 	echo -e "${GREEN}WordPress installation completed successfully.${RESET}"
 else 
-	echo -e "${GREEN}WordPress is already installed.${RESET}"
+	echo -e "${GREEN}WordPress is already installed. You can visit $DOMAIN_NAME in your browser.${RESET}"
 fi
 
 
