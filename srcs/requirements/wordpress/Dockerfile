@@ -10,7 +10,7 @@ RUN mkdir -p /var/www/html
 COPY ./conf/www.conf /etc/php/7.4/fpm/pool.d/
 
 COPY ./tools /
-RUN chmod +x /wordpress-start.sh
+RUN chmod +x /wp-start.sh
 WORKDIR /var/www/html
-ENTRYPOINT [ "/wordpress-start.sh" ]
+ENTRYPOINT [ "/wp-start.sh" ]
 CMD ["/usr/sbin/php-fpm7.4", "--nodaemonize"]
