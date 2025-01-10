@@ -1,44 +1,15 @@
-secrets:
-  db_password:
-    file: ../secrets/db_password.txt
-  db_root_password:
-    file: ../secrets/db_root_password.txt
-  credentials:
-    file: ../secrets/credentials.txt
-
-volumes:
-  mariadb_volume:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/ayhan/data/mariadb
-
-  wordpress_volume:
-    driver : local
-    driver_opts:
-      type: none
-      o: bind
-      device: /home/ayhan/data/wordpress
-
-networks:
-  net:
-    name: net
-    driver: bridge
-
 services:
-
   mariadb:
     container_name: mariadb
     build: ./requirements/mariadb
-    env_file:
-      - .env
     expose:
       - 3306
     networks:
-      - net
+      - inception_net
     volumes:
-      - mariadb_volume:/var/lib/mysql
+      - db_volume:/var/lib/mysql
+    env_file:
+      - .env
     secrets:
       - db_password
       - db_root_password
@@ -48,19 +19,19 @@ services:
   wordpress:
     container_name: wordpress
     build: ./requirements/wordpress
-    env_file:
-      - .env
     expose:
       - 9000
     networks:
-      - net
+      - inception_net
     volumes:
-      - wordpress_volume:/var/www/html
-    depends_on:
-      - mariadb
+      - wp_volume:/var/www/html
+    env_file:
+      - .env
     secrets:
       - credentials
       - db_password
+    depends_on:
+      - mariadb
     restart: always
 
   nginx:
@@ -69,14 +40,44 @@ services:
     expose:
       - 443
     networks:
-      - net
+      - inception_net
     ports:
       - "443:443"
     volumes:
-      - wordpress_volume:/var/www/html
+      - wp_volume:/var/www/html
+    env_file:
+      - .env
+    secrets:
+      - credentials
     depends_on:
       - mariadb
       - wordpress
-    secrets:
-      - credentials
     restart: always
+
+networks:
+  inception_net:
+    name: inception_net
+    driver: bridge
+
+secrets:
+  db_password:
+    file: ../secrets/db_password.txt
+  db_root_password:
+    file: ../secrets/db_root_password.txt
+  credentials:
+    file: ../secrets/credentials.txt
+
+volumes:
+  db_volume:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/acosgun/data/mariadb
+
+  wp_volume:
+    driver : local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/acosgun/data/wordpress

@@ -34,7 +34,7 @@ load_and_verify_credentials()
 	"WP_USER_LOGIN" "WP_USER_EMAIL" "WP_USER_PASSWORD")
     for var in "${REQUIRED_VARS[@]}"; do
         if [ -z "${!var}" ]; then
-            echo -e "${RED}Error: Missing required environment variable: $var${RESET}"
+            echo -e "${RED}Error: Missing required environment variable / credential : $var${RESET}"
             exit 1
         fi
     done
@@ -67,7 +67,7 @@ install_wordpress()
     if [ ! -f /var/www/html/wp-config.php ]; then
         retry_command "wp-cli core download --allow-root"
         retry_command "wp-cli config create --allow-root --dbname=$MYSQL_DATABASE --dbuser=$MYSQL_USER --dbpass=$MYSQL_PASSWORD --dbhost=mariadb"
-        retry_command "wp-cli core install --allow-root --url=$DOMAIN_NAME --title='wordpress' --admin_user=$WP_ADMIN_LOGIN --admin_password=$WP_ADMIN_PASSWORD --admin_email=$WP_ADMIN_EMAIL"
+        retry_command "wp-cli core install --allow-root --url=$DOMAIN_NAME --title=$WP_TITLE --admin_user=$WP_ADMIN_LOGIN --admin_password=$WP_ADMIN_PASSWORD --admin_email=$WP_ADMIN_EMAIL"
         retry_command "wp-cli user create --allow-root $WP_USER_LOGIN $WP_USER_EMAIL --user_pass=$WP_USER_PASSWORD"
         echo -e "${GREEN}WordPress installation completed successfully.${RESET}"
     else

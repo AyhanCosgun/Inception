@@ -24,9 +24,8 @@ fi
 
 if [ -f /run/secrets/credentials ]; then
     export MYSQL_USER=$(grep MYSQL_USER /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
-    export MYSQL_DATABASE=$(grep MYSQL_DATABASE /run/secrets/credentials | cut -d '=' -f2 | tr -d '[:space:]')
 
-    if [ -z "$MYSQL_DATABASE" ] || [ -z "$MYSQL_USER" ] ; then
+    if [ -z "$MYSQL_USER" ] ; then
     echo -e "${RED}credentials file is empty !${RESET}"
     exit 1
 fi
@@ -36,13 +35,12 @@ else
 fi
  
 
-####################################################
-# Start MariaDB service and check permissions
-
+# Start MariaDB service
 service mariadb start 2> /dev/mariadb-error-output.txt
 
 sleep 5
 
+# Create users
 echo -e "Running SQL setup script..." && \
 mariadb -u root -p"$MYSQL_ROOT_PASSWORD" < ./init-users.sql 2>> /dev/mariadb-error-output.txt
 

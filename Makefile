@@ -1,71 +1,42 @@
-COMPOSE_DIR := ./srcs
-
 all: up
 
-up:check_credentials
-	mkdir -p ${HOME}/data/wordpress
-	mkdir -p ${HOME}/data/mariadb
+up:
+	mkdir -p /home/acosgun/data/wordpress
+	mkdir -p /home/acosgun/data/mariadb
 	sudo mount --make-shared /
-	docker compose -f $(COMPOSE_DIR)/docker-compose.yml up --build
-
-check_credentials:
-	@$(COMPOSE_DIR)/requirements/tools/check-credentials.sh
+	docker-compose -f ./srcs/docker-compose.yml up --build
 
 down:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.yml down
+	docker-compose -f ./srcs/docker-compose.yml down
+
+start:
+	docker-compose -f srcs/docker-compose.yml start
 
 stop:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.yml stop
+	docker-compose -f ./srcs/docker-compose.yml stop
 
-restart: down up
-
-build:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.yml build
 
 clean:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.yml down --volumes --remove-orphans
+	docker-compose -f ./srcs/docker-compose.yml down --volumes --remove-orphans
 
-fclean: clean
-	@sudo rm -rf ${HOME}/data
-	docker compose -f $(COMPOSE_DIR)/docker-compose.ymonf/50-server.cnf /etc/mysql/mariadb.conf.l down --rmi all --volumes --remove-orphans
+fclean:
+	docker compose -f ./srcs/docker-compose.yml down --rmi all --volumes --remove-orphans
+	sudo rm -rf /home/acosgun/data
 
 re: fclean all
 
-logs:
-	docker compose -f $(COMPOSE_DIR)/docker-compose.yml logs -f
-
-f:
-	@sudo rm -rf ${HOME}/data
-	docker builder prune -a --force
-	docker system prune -a --volumes --force
-	docker volume prune --all --force
 
 nginx:
-	mkdir -p ${HOME}/data/wordpress
-	docker compose -f srcs/docker-compose.yml up --build nginx
+	mkdir -p /home/acosgun/data/wordpress
+	docker-compose -f srcs/docker-compose.yml up --build nginx
 
-maria:
-	mkdir -p ${HOME}/data/mariadb
-	docker compose -f srcs/docker-compose.yml up --build mariadb
+mariadb:
+	mkdir -p /home/acosgun/data/mariadb
+	docker-compose -f srcs/docker-compose.yml up --build mariadb
 
 wordpress:
-	mkdir -p ${HOME}/data/wordpress
-	docker compose -f srcs/docker-compose.yml up --build wordpress
+	mkdir -p /home/acosgun/data/wordpress
+	docker-compose -f srcs/docker-compose.yml up --build wordpress
 
-host:
-	@HOSTS_FILE="/etc/hosts"; \
-	ENTRY="127.0.0.1       acosgun.42.fr"; \
-	if [ -f $$HOSTS_FILE ]; then \
-	    if grep -Fxq "$$ENTRY" $$HOSTS_FILE; then \
-	        echo "Domain already exists in this directory-> $$HOSTS_FILE, domain-> $$ENTRY"; \
-	    else \
-	        echo "Adden domain name in this directory-> $$HOSTS_FILE, domain-> $$ENTRY"; \
-	        sudo sed -i "1i $$ENTRY" $$HOSTS_FILE; \
-	    fi \
-	else \
-	    echo "File not found: $$HOSTS_FILE"; \
-		echo "Please add the domain manually, this problem couse by the OS. This setup is for Linux OS."; \
-	    exit 1; \
-	fi
 
-.PHONY: all up down restart build clean fclean re host check_credentials
+.PHONY: all up down start stop clean fclean re nginx mariadb wordpress
