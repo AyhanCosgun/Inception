@@ -11,16 +11,19 @@ sleep 10
 
 prepare_environment()
 {
+    echo -e "${CYAN}Preparing environment ...${RESET}"
     chown -R www-data: /var/www/*
     chmod -R 755 /var/www/*
     mkdir -p /run/php/
     touch /run/php/php7.4-fpm.pid
     chown -R www-data:www-data /var/www/html/
+    echo -e "${CYAN}Environment is ready...${RESET}"
 }
 
 
 load_and_verify_credentials()
 {
+    echo -e "${CYAN}Loading and verifying credentials ...${RESET}"
     if [ -f /run/secrets/credentials ]; then
 		source <(grep -v '^#' /run/secrets/credentials | grep 'MYSQL\|WP_' | sed 's/ //g')
 
@@ -38,6 +41,7 @@ load_and_verify_credentials()
             exit 1
         fi
     done
+    echo -e "${CYAN}Credentials are ready...${RESET}"
 }
 
 
@@ -64,14 +68,17 @@ retry_command()
 
 install_wordpress()
 {
+    echo -e "${CYAN}Installing Wordpress ...${RESET}"
     if [ ! -f /var/www/html/wp-config.php ]; then
         retry_command "wp-cli core download --allow-root"
         retry_command "wp-cli config create --allow-root --dbname=$MYSQL_DATABASE --dbuser=$MYSQL_USER --dbpass=$MYSQL_PASSWORD --dbhost=mariadb"
-        retry_command "wp-cli core install --allow-root --url=$DOMAIN_NAME --title="$WP_TITLE" --admin_user=$WP_ADMIN_LOGIN --admin_password=$WP_ADMIN_PASSWORD --admin_email=$WP_ADMIN_EMAIL"
+        retry_command "wp-cli core install --allow-root --url=$DOMAIN_NAME --title=$WP_TITLE --admin_user=$WP_ADMIN_LOGIN --admin_password=$WP_ADMIN_PASSWORD --admin_email=$WP_ADMIN_EMAIL"
         retry_command "wp-cli user create --allow-root $WP_USER_LOGIN $WP_USER_EMAIL --user_pass=$WP_USER_PASSWORD"
-        echo -e "${GREEN}WordPress installation completed successfully. You can visit $DOMAIN_NAME in your browser.${RESET}"
+        echo -e "${GREEN}WordPress installation completed successfully.${RESET} \n \
+        You can visit  ${GREEN} $DOMAIN_NAME ${RESET} in your browser."
     else
-        echo -e "${GREEN}WordPress is already installed. You can visit $DOMAIN_NAME in your browser. ${RESET}"
+        echo -e "${GREEN}WordPress is already installed.${RESET} \n \
+        You can visit  ${GREEN} $DOMAIN_NAME ${RESET} in your browser."
     fi
 }
 
