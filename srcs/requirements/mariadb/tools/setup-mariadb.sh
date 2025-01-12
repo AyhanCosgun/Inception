@@ -18,6 +18,7 @@ fi
 
 if [ -f /run/secrets/credentials ]; then
     source <(grep -v '^#' /run/secrets/credentials | grep -E '^MYSQL_USER=' | sed 's/ //g')
+fi
 
 REQUIRED_VARS=("MYSQL_USER" "MYSQL_PASSWORD" "MYSQL_ROOT_PASSWORD")
 for var in "${REQUIRED_VARS[@]}"; do
@@ -51,3 +52,4 @@ echo -e "${GREEN}MariaDB setup is complete. ${RESET} The database is ready for c
 Monitoring logs and executing the main process..."
 
 exec "$@"
+
