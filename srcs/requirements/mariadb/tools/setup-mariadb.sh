@@ -40,9 +40,21 @@ service mariadb start 2> /dev/mariadb-error-output.txt
 
 sleep 5
 
+mariadb -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '$MYSQL_ROOT_PASSWORD';"
+
 # Create users
-echo -e "Running SQL setup script..." && \
-mariadb -u root -p"$MYSQL_ROOT_PASSWORD" < ./init-users.sql 2>> /dev/mariadb-error-output.txt
+echo -e "Setting database [${BLUE}$MYSQL_DATABASE]${RESET}..." && \
+mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS $MYSQL_DATABASE;"
+
+echo -e "Setting mysql user [${BLUE}$MYSQL_USER]${RESET}..." && \
+mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "CREATE USER IF NOT EXISTS '$MYSQL_USER'@'%' IDENTIFIED BY '$MYSQL_PASSWORD';"
+
+echo -e "Giving permissions to database to user [${BLUE}$MYSQL_DATABASE]${RESET}..." && \
+mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "GRANT ALL PRIVILEGES ON $MYSQL_DATABASE.* TO '$MYSQL_USER'@'%';"
+
+echo -e "Flushing privileges to apply changes${RESET}..." && \
+mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "FLUSH PRIVILEGES;"
+
 
 echo -e "Shutting down database${RESET}..." && \
 mariadb -u root -p"$MYSQL_ROOT_PASSWORD" -e "SHUTDOWN;"

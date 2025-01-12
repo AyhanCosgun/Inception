@@ -67,9 +67,9 @@ install_wordpress()
     if [ ! -f /var/www/html/wp-config.php ]; then
         retry_command "wp-cli core download --allow-root"
         retry_command "wp-cli config create --allow-root --dbname=$MYSQL_DATABASE --dbuser=$MYSQL_USER --dbpass=$MYSQL_PASSWORD --dbhost=mariadb"
-        retry_command "wp-cli core install --allow-root --url=$DOMAIN_NAME --title=$WP_TITLE --admin_user=$WP_ADMIN_LOGIN --admin_password=$WP_ADMIN_PASSWORD --admin_email=$WP_ADMIN_EMAIL"
+        retry_command "wp-cli core install --allow-root --url=$DOMAIN_NAME --title="$WP_TITLE" --admin_user=$WP_ADMIN_LOGIN --admin_password=$WP_ADMIN_PASSWORD --admin_email=$WP_ADMIN_EMAIL"
         retry_command "wp-cli user create --allow-root $WP_USER_LOGIN $WP_USER_EMAIL --user_pass=$WP_USER_PASSWORD"
-        echo -e "${GREEN}WordPress installation completed successfully.${RESET}"
+        echo -e "${GREEN}WordPress installation completed successfully. You can visit $DOMAIN_NAME in your browser.${RESET}"
     else
         echo -e "${GREEN}WordPress is already installed. You can visit $DOMAIN_NAME in your browser. ${RESET}"
     fi

@@ -5,7 +5,7 @@ services:
     expose:
       - 3306
     networks:
-      - inception_net
+      - net
     volumes:
       - db_volume:/var/lib/mysql
     env_file:
@@ -22,7 +22,7 @@ services:
     expose:
       - 9000
     networks:
-      - inception_net
+      - net
     volumes:
       - wp_volume:/var/www/html
     env_file:
@@ -40,7 +40,7 @@ services:
     expose:
       - 443
     networks:
-      - inception_net
+      - net
     ports:
       - "443:443"
     volumes:
@@ -55,8 +55,8 @@ services:
     restart: always
 
 networks:
-  inception_net:
-    name: inception_net
+  net:
+    name: net
     driver: bridge
 
 secrets:
