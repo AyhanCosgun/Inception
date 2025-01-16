@@ -5,7 +5,7 @@ RED='\033[31m'
 RESET='\033[0m'
 
 
-# Prepare certificate variables
+# Prepare certificate  variables
 if [ -f /run/secrets/credentials ]; then
     source <(grep -v '^#' /run/secrets/credentials | grep 'CERT' | sed 's/ //g')	
 else
